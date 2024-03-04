@@ -1,36 +1,46 @@
-from __future__ import division
-from __future__ import print_function
-import collections
-import math
-from tkinter import Tk, BOTH, Canvas
+import os
+import random
 
-def hex_corner(center, size, i):
-    angle_deg = 60 * i
-    angle_rad = math.radians(angle_deg)
-    x = center[0] + size * math.cos(angle_rad)
-    y = center[1] + size * math.sin(angle_rad)
-    return x, y
+from entity import Entity
+from map import Map
+
+os.system("")
 
 
-def draw_hexagon(canvas, center, size, color="green"):
-    hexagon_coords = []
-    for i in range(6):
-        corner = hex_corner(center, size, i)
-        hexagon_coords.extend(corner)
-    hexagon_id = canvas.create_polygon(hexagon_coords, fill=color, outline="black")
-    return hexagon_id
+class game:
+    def __init__(self, entity: Entity):
+        self.entity = entity
+        self.game_map = Map(30, 15, entity)
+        self.run()
 
+    def run(self) -> None:
+        while True:
+            os.system("clear")
+            self.game_map.display_map()
+            direction = input("Move (W/A/S/D): ").upper()
 
-def main():
-    root = Tk()
-    root.title("Hexagon Drawing")
+            # self.game_map.clear_player()  # Clear the previous player position
 
-    canvas = Canvas(root, width=400, height=400)
-    canvas.pack()
+            if direction == "W" and self.game_map.player.y > 0:
+                self.game_map.player.y -= 1
+            elif direction == "A" and self.game_map.player.x > 0:
+                self.game_map.player.x -= 1
+            elif direction == "S" and self.game_map.player.y < self.game_map.height - 1:
+                self.game_map.player.y += 1
+            elif direction == "D" and self.game_map.player.x < self.game_map.width - 1:
+                self.game_map.player.x += 1
+            elif direction == "Q":
+                print("Quitting the game.")
+                break
+            else:
+                print("Invalid input. Use W/A/S/D to move or Q to quit.")
+                continue
+            if random.random() <= 0.5:
+                self.game_map.display_event("You found a treasure chest!")
+                wait = input("Press enter to continue.")
 
-    draw_hexagon(canvas, (200, 200), 30, color="green")
-
-    root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    entity = Entity("Player", 100, 1, 1)
+    gameplay = game(entity)
+    gameplay.run()
