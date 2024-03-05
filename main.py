@@ -6,6 +6,7 @@ import getch
 from entity import Entity
 from event import Event
 from map import Map
+from tile import Biome
 
 os.system("")
 
@@ -40,9 +41,15 @@ class game:
             tile = self.game_map.map_data[self.game_map.player.y][
                 self.game_map.player.x
             ]
-            if tile == ".":
-                wait = input("Press enter to continue.")
-                self.event.handler(tile)
+            tile = self.game_map.map_data[self.game_map.player.y][
+                self.game_map.player.x
+            ]
+            biome = tile.biome
+            event_message = biome.generate_event()
+            print(event_message)
+            # if tile == ".":
+            #     wait = input("Press enter to continue.")
+            #     self.event.handler(tile)
 
 
 if __name__ == "__main__":
