@@ -14,8 +14,7 @@ class Tile:
 
 
 plains = Tile(".", ANSI_YELLOW)
-forest = Tile("8", ANSI_GREEN)
-pines = Tile("Y", ANSI_GREEN)
-mountain = Tile("A", ANSI_WHITE)
+forest = Tile("󰹩", ANSI_GREEN)
+pines = Tile("", ANSI_GREEN)
+mountain = Tile("", ANSI_WHITE)
 water = Tile("~", ANSI_CYAN)
-player_symbol = Tile("P", ANSI_RED)

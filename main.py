@@ -1,7 +1,10 @@
 import os
 import random
 
+import getch
+
 from entity import Entity
+from event import Event
 from map import Map
 
 os.system("")
@@ -10,6 +13,7 @@ os.system("")
 class game:
     def __init__(self, entity: Entity):
         self.entity = entity
+        self.event = Event()
         self.game_map = Map(30, 15, entity)
         self.run()
 
@@ -17,27 +21,28 @@ class game:
         while True:
             os.system("clear")
             self.game_map.display_map()
-            direction = input("Move (W/A/S/D): ").upper()
-
-            # self.game_map.clear_player()  # Clear the previous player position
-
-            if direction == "W" and self.game_map.player.y > 0:
+            print("w: up, a: left, s: down, d: right, q: quit")
+            direction = getch.getch()
+            if direction == "w" and self.game_map.player.y > 0:
                 self.game_map.player.y -= 1
-            elif direction == "A" and self.game_map.player.x > 0:
+            elif direction == "a" and self.game_map.player.x > 0:
                 self.game_map.player.x -= 1
-            elif direction == "S" and self.game_map.player.y < self.game_map.height - 1:
+            elif direction == "s" and self.game_map.player.y < self.game_map.height - 1:
                 self.game_map.player.y += 1
-            elif direction == "D" and self.game_map.player.x < self.game_map.width - 1:
+            elif direction == "d" and self.game_map.player.x < self.game_map.width - 1:
                 self.game_map.player.x += 1
-            elif direction == "Q":
+            elif direction == "q":
                 print("Quitting the game.")
-                break
+                exit()
             else:
                 print("Invalid input. Use W/A/S/D to move or Q to quit.")
                 continue
-            if random.random() <= 0.5:
-                self.game_map.display_event("You found a treasure chest!")
+            tile = self.game_map.map_data[self.game_map.player.y][
+                self.game_map.player.x
+            ]
+            if tile == ".":
                 wait = input("Press enter to continue.")
+                self.event.handler(tile)
 
 
 if __name__ == "__main__":

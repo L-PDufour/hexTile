@@ -69,18 +69,6 @@ class Map:
     def clear_player(self) -> None:
         self.map_data[self.player.y][self.player.x] = " "
 
-    def display_event(self, event_message: str) -> None:
-        frame_width = len(event_message) + 4
-        frame = "+" + "=" * frame_width + "+"
-        padding = "|" + " " * (frame_width + 2) + "|"
-
-        print(frame)
-        print(padding)
-        print(f"|  {event_message}  |")
-        print(padding)
-        print(frame)
-
-
     def display_map(self) -> None:
         # self.generate_player(player_symbol)
         frame = "x" + self.width * "=" + "x"
@@ -91,3 +79,25 @@ class Map:
                 row_tiles[self.player.x] = "P"
             print("|" + "".join(row_tiles) + "|")
         print(frame)
+
+    def get_tile(self, x: int, y: int) -> Tile:
+        return self.map_data[y][x]
+# def display_map(self) -> None:
+#     frame = "x" + self.width * "=" + "x"
+#     print(frame)
+#
+#     for y, row in enumerate(self.map_data):
+#         row_tiles = [tile.symbol for tile in row]
+#
+#         # Display content in the first window (left side)
+#         if y == self.player.y:
+#             row_tiles[self.player.x] = "P"
+#
+#         # Concatenate hero's status to the row content
+#         hero_status = f"Hero: Health({self.player.health}) Attack({self.player.attack}) Defense({self.player.defense})"
+#         combined_row = "|" + "".join(row_tiles) + "|" + hero_status
+#
+#         print(combined_row)
+#
+#     print(frame)
+
