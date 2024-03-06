@@ -1,80 +1,98 @@
 import os
 import random
-import string
+from random import randint
 
 import getch
 
-from entity import Entity
-from event import Event
+from entity import Entity, Player
 from map import Map
-from tile import Biome, ForestBiome, MountainsBiome, PinesBiome, PlainsBiome, WaterBiome
 
 os.system("")
 
 
 def input_direction(direction: str, game_map: Map) -> None:
-    if direction == "w" and game_map.player.y > 0:
-        game_map.player.y -= 1
-    elif direction == "a" and game_map.player.x > 0:
-        game_map.player.x -= 1
-    elif direction == "s" and game_map.player.y < game_map.height - 1:
-        game_map.player.y += 1
-    elif direction == "d" and game_map.player.x < game_map.width - 1:
-        game_map.player.x += 1
+    current_biome = game_map.map_data[game_map.player.y][game_map.player.x]
+
+    if direction == "p":
+        game_map.player.drink_potion()
+        game_map.player.display_status()
+    elif direction in {"w", "a", "s", "d"}:
+        new_x, new_y = game_map.player.x, game_map.player.y
+
+        if direction == "w" and game_map.player.y > 0:
+            new_y -= 1
+        elif direction == "a" and game_map.player.x > 0:
+            new_x -= 1
+        elif direction == "s" and game_map.player.y < game_map.height - 1:
+            new_y += 1
+        elif direction == "d" and game_map.player.x < game_map.width - 1:
+            new_x += 1
+        if game_map.player.stamina < 2: 
+            print("You don't have enough stamina to move.")
+            wait = input("Press enter to sleep.")
+            game_map.player.stamina = 10
+            game_map.player.food -= 1
+        if game_map.map_data[new_y][new_x].walkable:
+            game_map.player.x, game_map.player.y = new_x, new_y
+            game_map.player.stamina -= current_biome.stamina_cost
+      
+        else:
+            print("You can't move there. The terrain is not walkable.")
+            wait = input("Press enter to continue.")
     elif direction == "q":
         print("Quitting the game.")
         exit()
     else:
-        print("Invalid input. Use W/A/S/D to move or Q to quit.")
-
-
-def display_health(entity: Entity) -> str:
-    remaining_health_symbol = "♥"
-    return f"{remaining_health_symbol * entity.health}"
-
-
-def display_status(entity: Entity) -> None:
-    frame_width = 32  # Adjust this value based on your needs
-    frame = "O" + "=" * (frame_width - 2) + "O"
-
-    print(frame)
-    print(f"| Name: {entity.name:<{frame_width-10}} |")
-    print(f"| HP: {display_health(entity):<{frame_width-8}} |")
-    print(f"| X: {entity.x} Y: {entity.y:<{frame_width-12}} |")
-    print(frame)
-
-
-def generate_random_name(length=8):
-    letters = string.ascii_letters
-    return "".join(random.choice(letters) for _ in range(length))
-
+        print("Invalid input. Use W/A/S/D to move, P to drink potions, or Q to quit.")
 
 class game:
-    def __init__(self, entity: Entity):
-        self.entity = entity
-        self.event = Event()
-        self.game_map = Map(30, 15, entity)
+    def __init__(self):
+        self.player = Player("Player", 10, 5, 30, 15)
+        self.game_map = Map(30, 15, self.player)
+        # start_x = randint(0, self.game_map.width - 1)
+        # start_y = self.game_map.height - 1
+        # self.player.x = start_x
+        # self.player.y = start_y
+        self.intro()
         self.run()
 
     def run(self) -> None:
         while True:
             os.system("clear")
-            display_status(self.entity)
+            self.player.display_status()
             self.game_map.display_map()
-            print("w: up, a: left, s: down, d: right, q: quit")
-            direction = getch.getch()
-            input_direction(direction, self.game_map)
-            tile = self.game_map.map_data[self.game_map.player.y][
+            print("Use W/A/S/D to move or Q to quit")
+            print("Use P to drink potions")
+            biome = self.game_map.map_data[self.game_map.player.y][
                 self.game_map.player.x
             ]
-            msg = tile.biome.generate_event()
-            print(msg)
-            wait = input("Press enter to continue.")
-            self.entity.health -= 1
+            biome.generate_event()
+            direction = getch.getch()
+            input_direction(direction, self.game_map)
+            if random.random() < 0.3:
+                enemy = Entity("Enemy", 10, 1)
+                self.player.fight(enemy)
+
+    def intro(self) -> None:
+        os.system("clear")
+        frame_width = 50
+        frame = "+" + "=" * (frame_width) + "+"
+
+        print(frame)
+        print(
+            f"| {'Welcome to the first AAAAA game in a terminal.':^{frame_width-2}} |"
+        )
+        print(f"| {'You must find the town.':^{frame_width-2}} |")
+        print(f"| {'Good luck.':^{frame_width-2}} |")
+        print(f"| {'Choose your hero name carefully.':^{frame_width-2}} |")
+        print(f"| {'Because I will not use it.':^{frame_width-2}} |")
+        print(frame)
+
+        player_name = input("Enter your hero name: ")
+        print(f"Hello, {player_name}! Press enter to start.")
+        input()
 
 
 if __name__ == "__main__":
-    random_name = generate_random_name()
-    entity = Entity(random_name, 10, 1, 1)
-    gameplay = game(entity)
+    gameplay = game()
     gameplay.run()
