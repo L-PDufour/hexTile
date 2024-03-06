@@ -2,6 +2,7 @@ import random
 # from math import randint
 from random import randint
 
+ANSI_YELLOW = "\033[33m"
 from entity import Entity
 from tile import (Biome, ForestBiome, MountainsBiome, PinesBiome, PlainsBiome,
                   Tile, WaterBiome)
@@ -11,7 +12,7 @@ class Map:
     def __init__(self, width: int, height: int, entity: Entity) -> None:
         self.width = width
         self.height = height
-        self.map_data: list[list[Biome]]
+        self.map_data = []
         self.player = entity
 
         self.generate_map()
@@ -23,20 +24,12 @@ class Map:
 
     def generate_map(self) -> None:
         self.map_data = [
-            [PlainsBiome() for _ in range(self.width)] for _ in range(self.height)
+            [Tile(".", ANSI_YELLOW, PlainsBiome()) for _ in range(self.width)]
+            for _ in range(self.height)
         ]
 
-    def create_tile(self, biome_class) -> Tile:
-        biome_instance = biome_class()
-        return Tile(biome_instance.symbol, biome_instance.color, biome_instance)
-
-    # def generate_player(self, tile: Tile) -> None:
-    #     if 0 <= self.player.x < self.width and 0 <= self.player.y < self.height:
-    #         self.map_data[self.player.y][self.player.x] = tile
-
     def display_map(self) -> None:
-        # self.generate_player(player_symbol)
-        frame = "x" + self.width * "=" + "x"
+        frame = "O" + self.width * "=" + "O"
         print(frame)
         for y, row in enumerate(self.map_data):
             row_tiles = [biome.symbol for biome in row]
@@ -47,9 +40,10 @@ class Map:
 
     def generate_line(self, biome: Biome) -> None:
         start_x, start_y = randint(0, self.height - 1), 0
+        tile = Tile(biome.symbol, biome.color, biome)
 
         while start_x != self.width and start_y != self.height:
-            self.map_data[start_y][start_x] = biome
+            self.map_data[start_y][start_x] = tile
             if random.random() < 0.5:
                 start_x += 1
             else:
@@ -66,8 +60,8 @@ class Map:
         for _ in range(num_patches):
             width = randint(min_size, max_size)
             height = randint(min_size, max_size)
-            start_x = randint(1, self.width - width - 1)
-            start_y = randint(1, self.height - height - 1)
+            start_x = randint(0, self.width - width)
+            start_y = randint(0, self.height - height )
 
             if irregular:
                 init_start_x = randint(3, self.width - max_size)
@@ -77,13 +71,9 @@ class Map:
                     width = randint(int(0.7 * max_size), max_size)
                     start_x = init_start_x - randint(1, 2)
                 for j in range(width):
-                    self.map_data[start_y + i][start_x + j] = biome
-
-    def clear_player(self) -> None:
-        self.map_data[self.player.y][self.player.x] = " "
-
-    def get_tile(self, x: int, y: int) -> Tile:
-        return self.map_data[y][x]
+                    tile = Tile(biome.symbol, biome.color, biome)
+                    self.map_data[start_y + i][start_x + j] = tile
+                    self.map_data[start_y + i][start_x + j] = tile
 
 
 """ Example"""
