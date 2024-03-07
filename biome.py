@@ -59,6 +59,7 @@ class PlainsBiome(Biome):
     def __init__(self):
         symbols = [
             ".",
+            ",",
         ]
         self.random_symbol = random.choice(symbols)
         self.stamina_cost = 1
@@ -92,15 +93,29 @@ class WaterBiome(Biome):
 
 class RiverBiome(Biome):
 
-    def __init__(self):
-
+    def __init__(self, map_data, x, y):
         self.stamina_cost = 1
-        if random.randint(0, 8) == 0:
+        if random.randint(0, 8) == 0 and self.is_adjacent_water_or_river(
+            map_data, x, y
+        ):
             super().__init__("=", BROWN_COLOR)
             self.walkable = True
         else:
             super().__init__("'", ANSI_CYAN)
             self.walkable = False
+
+    def is_adjacent_water_or_river(self, map_data, x, y) -> bool:
+        if y == 0 or y == len(map_data) - 1 or x == 0 or x == len(map_data[0]) - 1:
+            return False
+
+        right_biome = map_data[y][x + 1]
+        left_biome = map_data[y][x - 1]
+
+        if isinstance(right_biome, (WaterBiome, RiverBiome)):
+            return False
+        if isinstance(left_biome, (WaterBiome, RiverBiome)):
+            return False
+        return True
 
     def generate_event(self):
         print("You are near water.")

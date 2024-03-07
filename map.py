@@ -1,16 +1,32 @@
 import random
 from random import randint
 
+ANSI_RESET = "\033[0m"
+ANSI_GREEN = "\033[32m"
 ANSI_YELLOW = "\033[33m"
+ANSI_WHITE = "\033[97m"
+ANSI_CYAN = "\033[36m"
+ANSI_TOWN_COLOR = "\033[34;1m"  # Bold blue
+BROWN_COLOR = "\033[0;33m"
+
 from biome import *
 from entity import Player
 
-
+legend = [
+    "Biome | Stamina Cost",
+    f"{ANSI_GREEN}. {ANSI_RESET} 1",
+    f"{ANSI_GREEN}T, ♣, ♠, ¶ {ANSI_RESET} 2",
+    f"{ANSI_WHITE}▲ {ANSI_RESET} 3",
+    f"{ANSI_CYAN}~, ' {ANSI_RESET} Unwalkable",
+    f"{BROWN_COLOR}= {ANSI_RESET} 1",
+    f"{ANSI_TOWN_COLOR}⌂ Town{ANSI_RESET}",
+]
 class Map:
     def __init__(self, width: int, height: int, player: Player) -> None:
         self.width = width
         self.height = height
         self.map_data: list[list[Biome]] = []
+        self.legend = []
         self.player = player
 
         self.generate_map()
@@ -19,7 +35,6 @@ class Map:
         self.generate_patch(WaterBiome, 2, 3, 5)
         self.generate_line(RiverBiome)
         self.map_data[0][randint(0, self.width - 1)] = TownBiome()
-        
 
     def generate_map(self) -> None:
         self.map_data = [
@@ -50,15 +65,16 @@ class Map:
                 for j in range(width):
                     self.map_data[start_y + i][start_x + j] = biome_class()
 
-    def generate_line(self, biome ) -> None:
-        start_x, start_y = randint(0, self.height - 1), 0
+    def generate_line(self, biome) -> None:
+        start_x, start_y = randint(0, self.width - 1), 0
 
-        while start_x != self.width and start_y != self.height:
-            self.map_data[start_y][start_x] = biome()
+        while start_y < self.height and start_x < self.width:
+            self.map_data[start_y][start_x] = biome(self.map_data, start_x , start_y)
             if random.random() < 0.5:
                 start_x += 1
             else:
                 start_y += 1
+
 
     def display_map(self) -> None:
         frame = "O" + self.width * "=" + "O"
@@ -70,5 +86,9 @@ class Map:
                     row_tiles.append(biome.symbol)
             if y == self.player.y:
                 row_tiles[self.player.x] = self.player.symbol
-            print("|" + "".join(row_tiles) + "|")
+            legend_entry = legend[y] if y < len(legend) else ""
+            print("|" + "".join(row_tiles) + "|" + " " + legend_entry)
         print(frame)
+        print("Use W/A/S/D to move or Q to quit")
+        print("Use P to drink potions")
+        print("Use H to hunt in a forest")
