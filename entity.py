@@ -4,10 +4,9 @@ import string
 import time
 from random import randint
 
-from utils import wait_for_enter
+from biome import PlainsBiome
+from utils import *
 
-ANSI_RED = "\033[31m"
-ANSI_RESET = "\033[0m"
 
 class Entity:
     def __init__(self, name: str, health: int, damage: int = 1) -> None:
@@ -45,7 +44,7 @@ class Player(Entity):
         self.potions = 3
         self.food = 3
         self.stamina = 10
-
+        self.flag = False
     def drink_potion(self) -> None:
         if self.potions > 0:
             self.health = self.maxhealth
@@ -69,7 +68,6 @@ class Player(Entity):
 
     def fight(self, entity: Entity, game) -> None:
         while entity.health > 0 and self.health > 0:
-            os.system("clear")
             game.render_screen()
             self.display_fight_status(entity)
             self.attack(entity)
@@ -81,11 +79,25 @@ class Player(Entity):
             if entity.health <= 0:
                 print(f"{entity.name} has died.")
                 self.generate_loot()
+            if self.flag == False:
+                print("You have higher chance to be found in plains.")
+                self.flag = True
             wait_for_enter()
+            os.system("clear")
     
-    def hunt(self) -> None:
-        os.system("clear")
-        if random.random() < 0.5:
+    def hunt(self, map) -> None:
+        if self.food >= 5:
+            print("You have enough food.")
+            wait_for_enter()
+            return
+        current_biome = map.map_data[self.y][self.x]
+
+        if isinstance(current_biome, PlainsBiome):
+            chance = 0.2
+            print("You have lower chance to hunt in plains.")
+        else:
+            chance = 0.6
+        if random.random() < chance:
             self.display_huntscene()
             self.food += 2
             wait_for_enter()
@@ -132,8 +144,10 @@ class Player(Entity):
 
     def display_huntscene(self) -> None:
         hunt_art = """
-        /\\_ _
-        ( o.o )
-         > ^ <
+        You successfully hunted for food.
+          /\\_/\\
+         ( o.o )
+          > ^ <
         """
         print(hunt_art)
+

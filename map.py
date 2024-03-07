@@ -1,14 +1,6 @@
 import random
 from random import randint
 
-ANSI_RESET = "\033[0m"
-ANSI_GREEN = "\033[32m"
-ANSI_YELLOW = "\033[33m"
-ANSI_WHITE = "\033[97m"
-ANSI_CYAN = "\033[36m"
-ANSI_TOWN_COLOR = "\033[34;1m"  # Bold blue
-BROWN_COLOR = "\033[0;33m"
-
 from biome import *
 from entity import Player
 
@@ -85,6 +77,8 @@ class Map:
                 if isinstance(biome, Biome):
                     row_tiles.append(biome.symbol)
             if y == self.player.y:
+                while self.map_data[self.player.y][self.player.x].walkable == False:
+                    self.player.x = randint(0, self.width - 1)
                 row_tiles[self.player.x] = self.player.symbol
             legend_entry = legend[y] if y < len(legend) else ""
             print("|" + "".join(row_tiles) + "|" + " " + legend_entry)
