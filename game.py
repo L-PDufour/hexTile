@@ -1,37 +1,61 @@
 import os
-import random
 
-import getch
-
-from biome import PlainsBiome
+from biome import *
+from display import Display
 from entity import Entity, Player
 from map import Map
-from utils import print_and_wait
 
 
 class Game:
-    def __init__(self):
-        self.player = Player("Player", 10, 5, 30, 15)
-        self.game_map = Map(30, 15, self.player)
-        self.intro()
-        self.run()
+    def __init__(self, player: Player, game_map: Map, display: Display) -> None:
+        self._player = player
+        self._game_map = game_map
+        self._display = display
 
-    def run(self) -> None:
-        while True:
-            self.render_screen()
-            self.game_map.map_data[self.game_map.player.y][
-                self.game_map.player.x
-            ].generate_event()
-            self.input_direction()
-            current_biome = self.game_map.map_data[self.game_map.player.y][self.game_map.player.x]
-            if isinstance(current_biome, PlainsBiome):
-                chance = 0.5
-            else:
-                chance = 0.3
-            if random.random() < chance:
-                enemy = Entity("Enemy", 10, 1)
-                self.player.fight(enemy, self)
-            self.player.get_status()
+    @property
+    def player(self) -> Player:
+        return self._player
+
+    @player.setter
+    def player(self, value: Player) -> None:
+        self._player = value
+
+    @property
+    def game_map(self) -> Map:
+        return self._game_map
+
+    @game_map.setter
+    def game_map(self, value: Map) -> None:
+        self._game_map = value
+
+    @property
+    def display(self) -> Display:
+        return self._display
+
+    @display.setter
+    def display(self, value: Display) -> None:
+        self._display = value
+
+    def start(self) -> None:
+        self.intro()
+        self.event()
+
+    def event(self) -> None:
+        self.game_map.map_data[self.game_map.player.y][
+            self.game_map.player.x
+        ].generate_event()
+        current_biome = self.game_map.map_data[self.game_map.player.y][
+            self.game_map.player.x
+        ]
+        if isinstance(current_biome, PlainsBiome):
+            chance = 0.5
+        else:
+            chance = 0.3
+        if random.random() < chance:
+            enemy = Entity()
+            self._player.set_fight_status(True)
+            self._display.render_fight_screen(enemy)
+            self._player.generate_loot()
 
     def intro(self) -> None:
         os.system("clear")
@@ -57,48 +81,15 @@ class Game:
         print(f"Hello, {player_name}! Press enter to start.")
         input()
 
-    def render_screen(self):
-        os.system("clear")
-        self.player.display_status()
-        self.game_map.display_map()
-
-    def input_direction(self) -> None:
-        direction = getch.getch()
-        while direction not in ["w", "a", "s", "d", "h", "p", "q"]:
-            print_and_wait(
-                "Invalid input. Use W/A/S/D to move, P to drink potions, H to hunt, or Q to quit."
-            )
-            direction = getch.getch()
-        if direction == "p":
-                self.game_map.player.drink_potion()
-                self.render_screen()
-                return
-        elif direction == "h":
-            if self.game_map.map_data[self.game_map.player.y][self.game_map.player.x].hunted:
-                print_and_wait("You have already hunted here.")
-                return
-            self.game_map.player.hunt(self.game_map)
-            self.game_map.map_data[self.game_map.player.y][self.game_map.player.x].hunted = True
-            self.render_screen()
-        current_biome = self.game_map.map_data[self.game_map.player.y][
-            self.game_map.player.x
-        ]
-        new_x, new_y = self.game_map.player.x, self.game_map.player.y
-
-        if direction in {"w", "\x1b[A"} and self.game_map.player.y > 0:
-            new_y -= 1
-        elif direction in {"a", "\x1b[D"} and self.game_map.player.x > 0:
-            new_x -= 1
-        elif direction in {"s", "\x1b[B"} and self.game_map.player.y < self.game_map.height - 1:
-            new_y += 1
-        elif direction in {"d", "\x1b[C"} and self.game_map.player.x < self.game_map.width - 1:
-            new_x += 1
-        elif direction == "q":
-            print("Quitting the game.")
-            exit()
-        if self.game_map.map_data[new_y][new_x].walkable:
-            self.game_map.player.x, self.game_map.player.y = new_x, new_y
-            self.game_map.player.stamina -= current_biome.stamina_cost
-            self.render_screen()
-        else:
-            print_and_wait("You can't move there.")
+    # def fight(self, entity: Entity) -> None:
+    #     while entity.health > 0 and self.player.health > 0:
+    #         self.player.display_fight_status(entity)
+    #         self.player.attack(entity)
+    #         entity.attack(self.player)
+    #     if self.player.health <= 0:
+    #         print(f"{self.player.name} has died.")
+    #         print("Game over.")
+    #         exit()
+    #     if entity.health <= 0:
+    #         print(f"{entity.name} has died.")
+    #         self.player.generate_loot()

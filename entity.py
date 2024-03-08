@@ -9,42 +9,44 @@ from utils import *
 
 
 class Entity:
-    def __init__(self, name: str, health: int, damage: int = 1) -> None:
-        self.name = name
-        self.maxhealth = health
-        self.health = health
-        self.damage = damage
+    def __init__(self) -> None:
+        self.name = self.generate_random_name()
+        self.maxhealth = 10
+        self.health = 10
+        self.damage = 1
 
     def attack(self, target) -> None:
         target.health -= self.damage
         target.health = max(target.health, 0)
 
-    def display_health(self) -> str:
+    def get_health(self) -> str:
         remaining_health_symbol = f"{ANSI_RED}♥{ANSI_RESET}"
         return f"{remaining_health_symbol * self.health}"
 
-    def display_status(self) -> None:
-        print("\n")
-        print(f"Name: {self.name}")
-        print(f"HP: {self.display_health()}")
-        if isinstance(self, Player):
-            print(f"Potions: {self.display_potions()} Foods: {self.display_food()}")
-            print(f"Stamina: {self.display_stamina()}")
+    def generate_random_name(self, length=8) -> str:
+        letters = string.ascii_letters
+        return "".join(random.choice(letters) for _ in range(length))
 
 
 class Player(Entity):
-    def __init__(
-        self, name: str, health: int, damage: int = 5, width: int = 0, height: int = 0
-    ) -> None:
-        super().__init__(name, health, damage)
-        self.generate_random_name()
+    def __init__(self, width: int = 0, height: int = 0) -> None:
+        super().__init__()
         self.symbol = "☻"
+        self.damage = 4
         self.x = randint(0, width - 1)
         self.y = height - 1
         self.potions = 3
         self.food = 3
         self.stamina = 10
         self.flag = False
+        self.fight_status = True
+
+    def get_is_fighting(self) -> bool:
+        return self.fight_status
+
+    def set_fight_status(self, status: bool) -> None:
+        self.fight_status = status
+
     def drink_potion(self) -> None:
         if self.potions > 0:
             self.health = self.maxhealth
@@ -53,38 +55,30 @@ class Player(Entity):
             print("You don't have any potions left.")
             wait_for_enter()
 
-    def generate_random_name(self, length=8):
-        letters = string.ascii_letters
-        self.name = "".join(random.choice(letters) for _ in range(length))
-
     def generate_loot(self) -> None:
-            if random.random() < 0.3:
-                if random.random() < 0.5 and self.food < 3:
-                    self.food += 1
-                    print("You found some food.")
-                elif random.random() < 0.5 and self.potions < 3:
-                    self.potions += 1
-                    print("You found a potion.")
+        if random.random() < 0.3:
+            if random.random() < 0.5 and self.food < 3:
+                self.food += 1
+                print("You found some food.")
+            elif random.random() < 0.5 and self.potions < 3:
+                self.potions += 1
+                print("You found a potion.")
 
-    def fight(self, entity: Entity, game) -> None:
-        while entity.health > 0 and self.health > 0:
-            game.render_screen()
-            self.display_fight_status(entity)
-            self.attack(entity)
-            entity.attack(self)
-            if self.health <= 0:
-                print(f"{self.name} has died.")
-                print("Game over.")
-                exit()
-            if entity.health <= 0:
-                print(f"{entity.name} has died.")
-                self.generate_loot()
-            if self.flag == False:
-                print("You have higher chance to be found in plains.")
-                self.flag = True
-            wait_for_enter()
-            os.system("clear")
-    
+    def fight(self, entity: Entity) -> None:
+        if self.health <= 0:
+            print("Game over.")
+            exit()
+        if entity.health <= 0:
+            self.set_fight_status(False)
+            # print(f"{entity.name} has died.")
+            return
+        self.set_fight_status(True)
+        entity.attack(self)
+        self.attack(entity)
+        if not self.flag:
+            print("You have a higher chance to be found in plains.")
+            self.flag = True
+
     def hunt(self, map) -> None:
         if self.food >= 5:
             print("You have enough food.")
@@ -121,27 +115,6 @@ class Player(Entity):
             self.stamina = 10
             wait_for_enter()
 
-    def display_fight_status(self, entity: Entity) -> None:
-        print("\n")
-        print(f"{self.name} is fighting {entity.name}!\n")
-        print(f"Name: {self.name}")
-        print(f"HP: {self.display_health()}")
-        print("-------------------")
-        print(f"Name: {entity.name}")
-        print(f"HP: {entity.display_health()}")
-
-    def display_stamina(self) -> str:
-        stamina_symbol = "♨"
-        return f"{stamina_symbol * self.stamina}"
-
-    def display_food(self) -> str:
-        food_symbol = "⚲"
-        return f"{food_symbol * self.food}"
-
-    def display_potions(self) -> str:
-        potion_symbol = "⚱"
-        return f"{potion_symbol * self.potions}"
-
     def display_huntscene(self) -> None:
         hunt_art = """
         You successfully hunted for food.
@@ -150,4 +123,3 @@ class Player(Entity):
           > ^ <
         """
         print(hunt_art)
-

@@ -4,15 +4,7 @@ from random import randint
 from biome import *
 from entity import Player
 
-legend = [
-    "Biome | Stamina Cost",
-    f"{ANSI_GREEN}. {ANSI_RESET} 1",
-    f"{ANSI_GREEN}T, ♣, ♠, ¶ {ANSI_RESET} 2",
-    f"{ANSI_WHITE}▲ {ANSI_RESET} 3",
-    f"{ANSI_CYAN}~, ' {ANSI_RESET} Unwalkable",
-    f"{BROWN_COLOR}= {ANSI_RESET} 1",
-    f"{ANSI_TOWN_COLOR}⌂ Town{ANSI_RESET}",
-]
+
 class Map:
     def __init__(self, width: int, height: int, player: Player) -> None:
         self.width = width
@@ -61,28 +53,8 @@ class Map:
         start_x, start_y = randint(0, self.width - 1), 0
 
         while start_y < self.height and start_x < self.width:
-            self.map_data[start_y][start_x] = biome(self.map_data, start_x , start_y)
+            self.map_data[start_y][start_x] = biome(self.map_data, start_x, start_y)
             if random.random() < 0.5:
                 start_x += 1
             else:
                 start_y += 1
-
-
-    def display_map(self) -> None:
-        frame = "O" + self.width * "=" + "O"
-        print(frame)
-        for y, row in enumerate(self.map_data):
-            row_tiles = []
-            for biome in row:
-                if isinstance(biome, Biome):
-                    row_tiles.append(biome.symbol)
-            if y == self.player.y:
-                while self.map_data[self.player.y][self.player.x].walkable == False:
-                    self.player.x = randint(0, self.width - 1)
-                row_tiles[self.player.x] = self.player.symbol
-            legend_entry = legend[y] if y < len(legend) else ""
-            print("|" + "".join(row_tiles) + "|" + " " + legend_entry)
-        print(frame)
-        print("Use W/A/S/D to move or Q to quit")
-        print("Use P to drink potions")
-        print("Use H to hunt in a forest")
